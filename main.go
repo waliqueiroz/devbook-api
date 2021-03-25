@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/waliqueiroz/devbook-api/config"
 	"github.com/waliqueiroz/devbook-api/router"
 )
 
 func main() {
-	fmt.Println("Running API on port 5000...")
+	config.Load()
+
+	fmt.Printf("Running API on port %d...\n", config.APIPort)
 	r := router.Generate()
 
-	http.ListenAndServe(":5000", r)
+	http.ListenAndServe(fmt.Sprintf(":%d", config.APIPort), r)
 }
