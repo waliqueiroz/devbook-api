@@ -3,38 +3,40 @@ package routes
 import (
 	"net/http"
 
-	"github.com/waliqueiroz/devbook-api/src/controllers"
+	"github.com/waliqueiroz/devbook-api/controller"
 )
+
+var userController = controller.NewUserController()
 
 var usersRoutes = []Route{
 	{
 		URI:          "/users",
 		Method:       http.MethodPost,
-		Function:     controllers.Create,
+		Function:     userController.Create,
 		RequiresAuth: false,
 	},
 	{
 		URI:          "/users",
 		Method:       http.MethodGet,
-		Function:     controllers.Index,
+		Function:     userController.Index,
 		RequiresAuth: false,
 	},
 	{
 		URI:          "/users/{id}",
 		Method:       http.MethodGet,
-		Function:     controllers.Show,
+		Function:     userController.Show,
 		RequiresAuth: false,
 	},
 	{
 		URI:          "/users/{id}",
 		Method:       http.MethodPut,
-		Function:     controllers.Update,
+		Function:     userController.Update,
 		RequiresAuth: false,
 	},
 	{
 		URI:          "/users/{id}",
 		Method:       http.MethodDelete,
-		Function:     controllers.Delete,
+		Function:     userController.Delete,
 		RequiresAuth: false,
 	},
 }

@@ -2,7 +2,7 @@ package router
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/waliqueiroz/devbook-api/src/router/routes"
+	"github.com/waliqueiroz/devbook-api/router/routes"
 )
 
 // Generate will return a router with the configured routes

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/waliqueiroz/devbook-api/src/router"
+	"github.com/waliqueiroz/devbook-api/router"
 )
 
 func main() {
