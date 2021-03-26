@@ -2,14 +2,13 @@ package controller
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 
 	"github.com/waliqueiroz/devbook-api/database"
 	"github.com/waliqueiroz/devbook-api/model"
 	"github.com/waliqueiroz/devbook-api/repository"
+	"github.com/waliqueiroz/devbook-api/response"
 )
 
 type userController struct{}
@@ -28,29 +27,30 @@ func (controller userController) Index(w http.ResponseWriter, r *http.Request) {
 func (controller userController) Create(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Fatal(err)
+		response.Error(w, http.StatusUnprocessableEntity, err)
 	}
 
 	var user model.User
 	err = json.Unmarshal(body, &user)
 	if err != nil {
-		log.Fatal(err)
+		response.Error(w, http.StatusBadRequest, err)
 	}
 
 	db, err := database.Connect()
 	if err != nil {
-		log.Fatal(err)
+		response.Error(w, http.StatusInternalServerError, err)
 	}
+	defer db.Close()
 
 	repository := repository.NewUserRepository(db)
 
-	userId, err := repository.Create(user)
+	user.ID, err = repository.Create(user)
 
 	if err != nil {
-		log.Fatal(err)
+		response.Error(w, http.StatusInternalServerError, err)
 	}
 
-	w.Write([]byte(fmt.Sprintf("Inserted ID: %d", userId)))
+	response.JSON(w, http.StatusCreated, user)
 }
 
 // Show returns a specific user
