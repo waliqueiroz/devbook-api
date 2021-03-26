@@ -11,8 +11,8 @@ import (
 func main() {
 	config.Load()
 
-	fmt.Printf("Running API on port %d...\n", config.APIPort)
 	r := router.Generate()
 
+	fmt.Printf("Listening on port %d...\n", config.APIPort)
 	http.ListenAndServe(fmt.Sprintf(":%d", config.APIPort), r)
 }
