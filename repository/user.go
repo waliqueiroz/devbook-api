@@ -11,12 +11,12 @@ type userRepository struct {
 	db *sql.DB
 }
 
-// NewUserRepository create a new user repository
+// NewUserRepository creates a new user repository
 func NewUserRepository(db *sql.DB) *userRepository {
 	return &userRepository{db}
 }
 
-// Create insert an user into database
+// Create inserts an user into database
 func (repository userRepository) Create(user model.User) (uint64, error) {
 	statement, err := repository.db.Prepare("insert into users (name, nick, email, password) values (?, ?, ?, ?)")
 	if err != nil {
@@ -92,7 +92,7 @@ func (repository userRepository) FindByID(userID uint64) (model.User, error) {
 	return user, nil
 }
 
-// Update update an user in database
+// Update updates an user in database
 func (repository userRepository) Update(userID uint64, user model.User) error {
 
 	statement, err := repository.db.Prepare("update users set name = ?, nick = ?, email = ? where id = ?")
@@ -103,6 +103,24 @@ func (repository userRepository) Update(userID uint64, user model.User) error {
 	defer statement.Close()
 
 	_, err = statement.Exec(user.Name, user.Nick, user.Email, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Delete deletes an user in database
+func (repository userRepository) Delete(userID uint64) error {
+
+	statement, err := repository.db.Prepare("delete from users where id = ?")
+
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	_, err = statement.Exec(userID)
 	if err != nil {
 		return err
 	}
