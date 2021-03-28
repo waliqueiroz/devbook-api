@@ -4,7 +4,10 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+	"strings"
 
+	"github.com/gorilla/mux"
 	"github.com/waliqueiroz/devbook-api/database"
 	"github.com/waliqueiroz/devbook-api/model"
 	"github.com/waliqueiroz/devbook-api/repository"
@@ -20,7 +23,24 @@ func NewUserController() *userController {
 
 // Index show all users
 func (controller userController) Index(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Listando usuários"))
+	nameOrNick := strings.ToLower(r.URL.Query().Get("user"))
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewUserRepository(db)
+	users, err := repository.FindByNameOrNick(nameOrNick)
+
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusOK, users)
 }
 
 // Create an user
@@ -64,7 +84,32 @@ func (controller userController) Create(w http.ResponseWriter, r *http.Request) 
 
 // Show returns a specific user
 func (controller userController) Show(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Listando usuário"))
+	params := mux.Vars(r)
+
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewUserRepository(db)
+
+	user, err := repository.FindByID(userID)
+
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusOK, user)
 }
 
 // Update an user

@@ -10,7 +10,12 @@ import (
 
 // Connect opens a connection with the database
 func Connect() (*sql.DB, error) {
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", config.DBUsername, config.DBPassword, config.DBHost, config.DBPort, config.DBDatabase)
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8&parseTime=true&loc=Local",
+		config.DBUsername,
+		config.DBPassword,
+		config.DBHost,
+		config.DBPort,
+		config.DBDatabase)
 
 	db, err := sql.Open("mysql", connectionString)
 
