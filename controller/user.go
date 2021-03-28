@@ -28,17 +28,25 @@ func (controller userController) Create(w http.ResponseWriter, r *http.Request) 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		response.Error(w, http.StatusUnprocessableEntity, err)
+		return
 	}
 
 	var user model.User
 	err = json.Unmarshal(body, &user)
 	if err != nil {
 		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err = user.Prepare(); err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
 	}
 
 	db, err := database.Connect()
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
+		return
 	}
 	defer db.Close()
 
@@ -48,6 +56,7 @@ func (controller userController) Create(w http.ResponseWriter, r *http.Request) 
 
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
+		return
 	}
 
 	response.JSON(w, http.StatusCreated, user)
