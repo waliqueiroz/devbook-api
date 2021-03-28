@@ -66,7 +66,7 @@ func (repository userRepository) FindByNameOrNick(nameOrNick string) ([]model.Us
 	return users, nil
 }
 
-// FindByNameOrNick returns all users that name or nick match with the argument
+// FindByID returns all users that name or nick match with the argument
 func (repository userRepository) FindByID(userID uint64) (model.User, error) {
 
 	rows, err := repository.db.Query("select id, name, nick, email, created_at from users where id = ?", userID)
@@ -90,4 +90,22 @@ func (repository userRepository) FindByID(userID uint64) (model.User, error) {
 	}
 
 	return user, nil
+}
+
+// Update update an user in database
+func (repository userRepository) Update(userID uint64, user model.User) error {
+
+	statement, err := repository.db.Prepare("update users set name = ?, nick = ?, email = ? where id = ?")
+
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	_, err = statement.Exec(user.Name, user.Nick, user.Email, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
