@@ -14,6 +14,7 @@ var DBDatabase = ""
 var DBUsername = ""
 var DBPassword = ""
 var APIPort = 0
+var SecretKey []byte
 
 func Load() {
 	var err error
@@ -35,5 +36,7 @@ func Load() {
 	DBDatabase = os.Getenv("DB_DATABASE")
 	DBUsername = os.Getenv("DB_USERNAME")
 	DBPassword = os.Getenv("DB_PASSWORD")
+
+	SecretKey = []byte(os.Getenv("SECRET_KEY"))
 
 }

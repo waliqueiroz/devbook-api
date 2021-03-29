@@ -43,18 +43,20 @@ func (controller authController) Login(w http.ResponseWriter, r *http.Request) {
 
 	repository := repository.NewUserRepository(db)
 
-	userStored, err := repository.FindByEmail(user.Email)
+	storedUser, err := repository.FindByEmail(user.Email)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	err = security.Verify(userStored.Password, user.Password)
+	err = security.Verify(storedUser.Password, user.Password)
 	if err != nil {
 		response.Error(w, http.StatusUnauthorized, err)
 		return
 	}
 
-	w.Write([]byte("Logou"))
+	token, _ := security.CreateToken(storedUser.ID)
+
+	w.Write([]byte(token))
 
 }
