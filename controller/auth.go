@@ -55,7 +55,11 @@ func (controller authController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, _ := security.CreateToken(storedUser.ID)
+	token, err := security.CreateToken(storedUser.ID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
 
 	w.Write([]byte(token))
 

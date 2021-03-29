@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/waliqueiroz/devbook-api/middleware"
 )
 
 // Route represents all the routes in the API
@@ -20,7 +21,12 @@ func Config(r *mux.Router) *mux.Router {
 	routes = append(routes, authRoutes...)
 
 	for _, route := range routes {
-		r.HandleFunc(route.URI, route.Function).Methods(route.Method)
+
+		if route.RequiresAuth {
+			r.HandleFunc(route.URI, middleware.Logger(middleware.Authenticate(route.Function))).Methods(route.Method)
+		} else {
+			r.HandleFunc(route.URI, middleware.Logger(route.Function)).Methods(route.Method)
+		}
 	}
 
 	return r
