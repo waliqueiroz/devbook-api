@@ -127,3 +127,29 @@ func (repository userRepository) Delete(userID uint64) error {
 
 	return nil
 }
+
+// FindByEmail returns all users that email match with the argument
+func (repository userRepository) FindByEmail(email string) (model.User, error) {
+
+	rows, err := repository.db.Query("select id, password from users where email = ?", email)
+
+	if err != nil {
+		return model.User{}, err
+	}
+
+	defer rows.Close()
+
+	var user model.User
+
+	if rows.Next() {
+
+		err = rows.Scan(&user.ID, &user.Password)
+
+		if err != nil {
+			return model.User{}, err
+		}
+
+	}
+
+	return user, nil
+}

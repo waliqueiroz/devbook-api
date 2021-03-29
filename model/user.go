@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/badoux/checkmail"
+	"github.com/waliqueiroz/devbook-api/security"
 )
 
 // User represents an User
@@ -24,7 +25,10 @@ func (user *User) Prepare(step string) error {
 		return err
 	}
 
-	user.format()
+	if err := user.format(step); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -52,8 +56,19 @@ func (user *User) validate(step string) error {
 	return nil
 }
 
-func (user *User) format() {
+func (user *User) format(step string) error {
 	user.Name = strings.TrimSpace(user.Name)
 	user.Nick = strings.TrimSpace(user.Nick)
 	user.Email = strings.TrimSpace(user.Email)
+
+	if step == "register" {
+		hashedPassword, err := security.Hash(user.Password)
+		if err != nil {
+			return err
+		}
+
+		user.Password = string(hashedPassword)
+	}
+
+	return nil
 }

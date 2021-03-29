@@ -8,7 +8,7 @@ import (
 
 var userController = controller.NewUserController()
 
-var usersRoutes = []Route{
+var userRoutes = []Route{
 	{
 		URI:          "/users",
 		Method:       http.MethodPost,

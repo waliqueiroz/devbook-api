@@ -16,12 +16,12 @@ import (
 
 type userController struct{}
 
-// NewUserController create a new UserController
+// NewUserController creates a new UserController
 func NewUserController() *userController {
 	return &userController{}
 }
 
-// Index show all users
+// Index shows all users
 func (controller userController) Index(w http.ResponseWriter, r *http.Request) {
 	nameOrNick := strings.ToLower(r.URL.Query().Get("user"))
 
