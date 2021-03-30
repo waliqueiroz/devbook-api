@@ -2,6 +2,7 @@ CREATE DATABASE IF NOT EXISTS devbook;
 
 USE devbook;
 
+DROP TABLE IF EXISTS followers;
 DROP TABLE IF EXISTS users;
 
 CREATE TABLE users(
@@ -11,4 +12,12 @@ CREATE TABLE users(
     email varchar(50) not null unique,
     password varchar(255) not null,
     created_at timestamp default current_timestamp()
-) ENGINE=INNODB;
+) ENGINE = INNODB;
+
+CREATE TABLE followers (
+    user_id int not null,
+    follower_id int not null,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
+    primary key (user_id, follower_id)
+) ENGINE = INNODB;
