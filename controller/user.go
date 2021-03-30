@@ -9,11 +9,11 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/waliqueiroz/devbook-api/authentication"
 	"github.com/waliqueiroz/devbook-api/database"
 	"github.com/waliqueiroz/devbook-api/model"
 	"github.com/waliqueiroz/devbook-api/repository"
 	"github.com/waliqueiroz/devbook-api/response"
-	"github.com/waliqueiroz/devbook-api/security"
 )
 
 type userController struct{}
@@ -123,7 +123,7 @@ func (controller userController) Update(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	tokenUserID, err := security.ExtractUserID(r)
+	tokenUserID, err := authentication.ExtractUserID(r)
 	if err != nil {
 		response.Error(w, http.StatusUnauthorized, err)
 		return
@@ -180,7 +180,7 @@ func (controller userController) Delete(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	tokenUserID, err := security.ExtractUserID(r)
+	tokenUserID, err := authentication.ExtractUserID(r)
 	if err != nil {
 		response.Error(w, http.StatusUnauthorized, err)
 		return
@@ -210,7 +210,7 @@ func (controller userController) Delete(w http.ResponseWriter, r *http.Request) 
 }
 
 func (controller userController) FollowUser(w http.ResponseWriter, r *http.Request) {
-	followerID, err := security.ExtractUserID(r)
+	followerID, err := authentication.ExtractUserID(r)
 	if err != nil {
 		response.Error(w, http.StatusUnauthorized, err)
 		return

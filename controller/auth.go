@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/waliqueiroz/devbook-api/authentication"
 	"github.com/waliqueiroz/devbook-api/database"
 	"github.com/waliqueiroz/devbook-api/model"
 	"github.com/waliqueiroz/devbook-api/repository"
@@ -55,7 +56,7 @@ func (controller authController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := security.CreateToken(storedUser.ID)
+	token, err := authentication.CreateToken(storedUser.ID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
