@@ -183,5 +183,4 @@ func (controller userController) Delete(w http.ResponseWriter, r *http.Request) 
 	}
 
 	response.JSON(w, http.StatusNoContent, nil)
-	w.Write([]byte("Deletando usuário"))
 }
