@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"github.com/waliqueiroz/devbook-api/model"
 	"github.com/waliqueiroz/devbook-api/repository"
 	"github.com/waliqueiroz/devbook-api/response"
+	"github.com/waliqueiroz/devbook-api/security"
 )
 
 type userController struct{}
@@ -121,6 +123,17 @@ func (controller userController) Update(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	tokenUserID, err := security.ExtractUserID(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	if userID != tokenUserID {
+		response.Error(w, http.StatusForbidden, errors.New("is not possible to update an user other than your own"))
+		return
+	}
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		response.Error(w, http.StatusUnprocessableEntity, err)
@@ -164,6 +177,17 @@ func (controller userController) Delete(w http.ResponseWriter, r *http.Request) 
 	userID, err := strconv.ParseUint(params["userId"], 10, 64)
 	if err != nil {
 		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	tokenUserID, err := security.ExtractUserID(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	if userID != tokenUserID {
+		response.Error(w, http.StatusForbidden, errors.New("is not possible to delete an user other than your own"))
 		return
 	}
 
