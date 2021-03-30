@@ -209,6 +209,7 @@ func (controller userController) Delete(w http.ResponseWriter, r *http.Request) 
 	response.JSON(w, http.StatusNoContent, nil)
 }
 
+// FollowUser allows an user to unfollow another
 func (controller userController) FollowUser(w http.ResponseWriter, r *http.Request) {
 	followerID, err := authentication.ExtractUserID(r)
 	if err != nil {
@@ -239,6 +240,44 @@ func (controller userController) FollowUser(w http.ResponseWriter, r *http.Reque
 	repository := repository.NewUserRepository(db)
 
 	if err := repository.Follow(userID, followerID); err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusNoContent, nil)
+}
+
+// UnfollowUser allows an user to unfollow another
+func (controller userController) UnfollowUser(w http.ResponseWriter, r *http.Request) {
+	followerID, err := authentication.ExtractUserID(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	params := mux.Vars(r)
+
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if userID == followerID {
+		response.Error(w, http.StatusForbidden, errors.New("is not possible to unfollow yourself"))
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewUserRepository(db)
+
+	if err := repository.Unfollow(userID, followerID); err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
 	}
