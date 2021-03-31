@@ -14,6 +14,7 @@ import (
 	"github.com/waliqueiroz/devbook-api/model"
 	"github.com/waliqueiroz/devbook-api/repository"
 	"github.com/waliqueiroz/devbook-api/response"
+	"github.com/waliqueiroz/devbook-api/security"
 )
 
 type userController struct{}
@@ -339,4 +340,72 @@ func (controller userController) SearchFollowing(w http.ResponseWriter, r *http.
 	}
 
 	response.JSON(w, http.StatusOK, followers)
+}
+
+// UpdatePassword updates the user password
+func (controller userController) UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	tokenUserID, err := authentication.ExtractUserID(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	params := mux.Vars(r)
+
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if userID != tokenUserID {
+		response.Error(w, http.StatusForbidden, errors.New("you cannot update a user other than your own"))
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		response.Error(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	var password model.Password
+	err = json.Unmarshal(body, &password)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewUserRepository(db)
+
+	hashedPassword, err := repository.FindPassword(userID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if err := security.Verify(hashedPassword, password.Current); err != nil {
+		response.Error(w, http.StatusUnauthorized, errors.New("the current password does not match the one saved in the database"))
+		return
+	}
+
+	newHasedPassword, err := security.Hash(password.New)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = repository.UpdatePassword(userID, string(newHasedPassword))
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	response.JSON(w, http.StatusNoContent, nil)
 }
