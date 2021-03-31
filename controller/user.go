@@ -284,3 +284,31 @@ func (controller userController) UnfollowUser(w http.ResponseWriter, r *http.Req
 
 	response.JSON(w, http.StatusNoContent, nil)
 }
+
+// SearchFollowers returns a list of followers for a given user
+func (controller userController) SearchFollowers(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewUserRepository(db)
+
+	followers, err := repository.SearchFollowers(userID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusOK, followers)
+}
