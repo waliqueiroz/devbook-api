@@ -312,3 +312,31 @@ func (controller userController) SearchFollowers(w http.ResponseWriter, r *http.
 
 	response.JSON(w, http.StatusOK, followers)
 }
+
+// SearchFollowing returns a list of users that a given user is following
+func (controller userController) SearchFollowing(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewUserRepository(db)
+
+	followers, err := repository.SearchFollowing(userID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusOK, followers)
+}

@@ -186,10 +186,39 @@ func (repository userRepository) Unfollow(userID, followerID uint64) error {
 	return nil
 }
 
-// Unfollow allows an user to unfollow another
+// SearchFollowers returns a list of followers for a given user
 func (repository userRepository) SearchFollowers(userID uint64) ([]model.User, error) {
 	rows, err := repository.db.Query(`select u.id, u.name, u.nick, u.email, u.created_at 
 									from users u join followers f on u.id = f.follower_id where f.user_id = ?`,
+		userID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var users []model.User
+
+	for rows.Next() {
+		var user model.User
+
+		err = rows.Scan(&user.ID, &user.Name, &user.Nick, &user.Email, &user.CreatedAt)
+
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+
+}
+
+// SearchFollowing returns a list of users that a given user is following
+func (repository userRepository) SearchFollowing(userID uint64) ([]model.User, error) {
+	rows, err := repository.db.Query(`select u.id, u.name, u.nick, u.email, u.created_at 
+									from users u join followers f on u.id = f.user_id where f.follower_id = ?`,
 		userID)
 	if err != nil {
 		return nil, err
