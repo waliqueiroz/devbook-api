@@ -66,7 +66,7 @@ func (repository userRepository) FindByNameOrNick(nameOrNick string) ([]model.Us
 	return users, nil
 }
 
-// FindByID returns all users that name or nick match with the argument
+// FindByID returns a user thar match with a given ID
 func (repository userRepository) FindByID(userID uint64) (model.User, error) {
 
 	rows, err := repository.db.Query("select id, name, nick, email, created_at from users where id = ?", userID)

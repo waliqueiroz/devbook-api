@@ -35,3 +35,29 @@ func (repository postRepository) Create(post model.Post) (uint64, error) {
 
 	return uint64(lastInsertID), nil
 }
+
+// FindByID returns a post that match with a given ID
+func (repository postRepository) FindByID(postID uint64) (model.Post, error) {
+
+	rows, err := repository.db.Query("select p.*, u.nick from posts p join users u on p.author_id = u.id where p.id = ?", postID)
+
+	if err != nil {
+		return model.Post{}, err
+	}
+
+	defer rows.Close()
+
+	var post model.Post
+
+	if rows.Next() {
+
+		err = rows.Scan(&post.ID, &post.Title, &post.Content, &post.AuthorID, &post.Likes, &post.CreatedAt, &post.AuthorNick)
+
+		if err != nil {
+			return model.Post{}, err
+		}
+
+	}
+
+	return post, nil
+}

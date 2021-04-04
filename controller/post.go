@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
+	"github.com/gorilla/mux"
 	"github.com/waliqueiroz/devbook-api/authentication"
 	"github.com/waliqueiroz/devbook-api/database"
 	"github.com/waliqueiroz/devbook-api/model"
@@ -68,7 +70,33 @@ func (controller postController) Create(w http.ResponseWriter, r *http.Request) 
 }
 
 // Show a post
-func (controller postController) Show(w http.ResponseWriter, r *http.Request) {}
+func (controller postController) Show(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	postID, err := strconv.ParseUint(params["postID"], 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewPostRepository(db)
+
+	post, err := repository.FindByID(postID)
+
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusOK, post)
+}
 
 // Update a post
 func (controller postController) Update(w http.ResponseWriter, r *http.Request) {}
