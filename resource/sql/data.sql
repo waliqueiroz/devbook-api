@@ -32,3 +32,20 @@ values
     (1, 2),
     (3, 1),
     (1, 3);
+
+insert into
+    posts(title, content, author_id)
+values
+    (
+        "Publicação do Usuário 1",
+        "Essa é a publicaçao do Usuário 1! Oba!",
+        1
+    ), (
+        "Publicação do Usuário 2",
+        "Essa é a publicaçao do Usuário 2! Oba!",
+        2
+    ), (
+        "Publicação do Usuário 3",
+        "Essa é a publicaçao do Usuário 3! Oba!",
+        3
+    )

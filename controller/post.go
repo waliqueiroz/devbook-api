@@ -21,7 +21,31 @@ func NewPostController() *postController {
 }
 
 // Index shows all posts by a user and from who they are following
-func (controller postController) Index(w http.ResponseWriter, r *http.Request) {}
+func (controller postController) Index(w http.ResponseWriter, r *http.Request) {
+	userID, err := authentication.ExtractUserID(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewPostRepository(db)
+
+	posts, err := repository.Index(userID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusOK, posts)
+
+}
 
 // Create a post
 func (controller postController) Create(w http.ResponseWriter, r *http.Request) {

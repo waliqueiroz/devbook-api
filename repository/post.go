@@ -61,3 +61,40 @@ func (repository postRepository) FindByID(postID uint64) (model.Post, error) {
 
 	return post, nil
 }
+
+// Index returns all posts by a user and from who they are following
+func (repository postRepository) Index(userID uint64) ([]model.Post, error) {
+
+	rows, err := repository.db.Query(`select distinct
+										p.*,
+										u.nick
+									from
+										posts p
+									join users u on
+										p.author_id = u.id
+									join followers f on 
+										p.author_id = f.user_id 
+									where
+										u.id = ? or f.follower_id = ? order by p.id desc`, userID, userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var posts []model.Post
+
+	for rows.Next() {
+		var post model.Post
+		err = rows.Scan(&post.ID, &post.Title, &post.Content, &post.AuthorID, &post.Likes, &post.CreatedAt, &post.AuthorNick)
+
+		if err != nil {
+			return nil, err
+		}
+
+		posts = append(posts, post)
+	}
+
+	return posts, nil
+}
