@@ -98,3 +98,21 @@ func (repository postRepository) Index(userID uint64) ([]model.Post, error) {
 
 	return posts, nil
 }
+
+// Update updates a post in database
+func (repository postRepository) Update(postID uint64, post model.Post) error {
+
+	statement, err := repository.db.Prepare("update posts set title = ?, content = ? where id = ?")
+
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	_, err = statement.Exec(post.Title, post.Content, postID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

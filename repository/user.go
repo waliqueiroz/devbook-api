@@ -16,7 +16,7 @@ func NewUserRepository(db *sql.DB) *userRepository {
 	return &userRepository{db}
 }
 
-// Create inserts an user into database
+// Create inserts a user into database
 func (repository userRepository) Create(user model.User) (uint64, error) {
 	statement, err := repository.db.Prepare("insert into users (name, nick, email, password) values (?, ?, ?, ?)")
 	if err != nil {
@@ -92,7 +92,7 @@ func (repository userRepository) FindByID(userID uint64) (model.User, error) {
 	return user, nil
 }
 
-// Update updates an user in database
+// Update updates a user in database
 func (repository userRepository) Update(userID uint64, user model.User) error {
 
 	statement, err := repository.db.Prepare("update users set name = ?, nick = ?, email = ? where id = ?")
@@ -110,7 +110,7 @@ func (repository userRepository) Update(userID uint64, user model.User) error {
 	return nil
 }
 
-// Delete deletes an user in database
+// Delete deletes a user in database
 func (repository userRepository) Delete(userID uint64) error {
 
 	statement, err := repository.db.Prepare("delete from users where id = ?")
@@ -154,7 +154,7 @@ func (repository userRepository) FindByEmail(email string) (model.User, error) {
 	return user, nil
 }
 
-// Follow allows an user to follow another
+// Follow allows a user to follow another
 func (repository userRepository) Follow(userID, followerID uint64) error {
 	statement, err := repository.db.Prepare("insert ignore into followers (user_id, follower_id) values (?, ?)")
 	if err != nil {
@@ -170,7 +170,7 @@ func (repository userRepository) Follow(userID, followerID uint64) error {
 	return nil
 }
 
-// Unfollow allows an user to unfollow another
+// Unfollow allows a user to unfollow another
 func (repository userRepository) Unfollow(userID, followerID uint64) error {
 	statement, err := repository.db.Prepare("delete from followers where user_id = ? and follower_id = ?")
 	if err != nil {

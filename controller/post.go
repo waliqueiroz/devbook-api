@@ -2,6 +2,7 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -123,7 +124,63 @@ func (controller postController) Show(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update a post
-func (controller postController) Update(w http.ResponseWriter, r *http.Request) {}
+func (controller postController) Update(w http.ResponseWriter, r *http.Request) {
+	userID, err := authentication.ExtractUserID(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	params := mux.Vars(r)
+
+	postID, err := strconv.ParseUint(params["postID"], 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewPostRepository(db)
+
+	storedPost, err := repository.FindByID(postID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if userID != storedPost.AuthorID {
+		response.Error(w, http.StatusForbidden, errors.New("you cannot update a post that is not yours"))
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		response.Error(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	var post model.Post
+	err = json.Unmarshal(body, &post)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = repository.Update(postID, post)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusNoContent, nil)
+
+}
 
 // Delete a post
 func (controller postController) Delete(w http.ResponseWriter, r *http.Request) {}
