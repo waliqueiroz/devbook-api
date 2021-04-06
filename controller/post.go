@@ -48,7 +48,7 @@ func (controller postController) Index(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// Create a post
+// Create creates a post
 func (controller postController) Create(w http.ResponseWriter, r *http.Request) {
 	userID, err := authentication.ExtractUserID(r)
 	if err != nil {
@@ -94,7 +94,7 @@ func (controller postController) Create(w http.ResponseWriter, r *http.Request) 
 	response.JSON(w, http.StatusCreated, post)
 }
 
-// Show a post
+// Show shows a post
 func (controller postController) Show(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
@@ -123,7 +123,7 @@ func (controller postController) Show(w http.ResponseWriter, r *http.Request) {
 	response.JSON(w, http.StatusOK, post)
 }
 
-// Update a post
+// Update updates a post
 func (controller postController) Update(w http.ResponseWriter, r *http.Request) {
 	userID, err := authentication.ExtractUserID(r)
 	if err != nil {
@@ -182,5 +182,47 @@ func (controller postController) Update(w http.ResponseWriter, r *http.Request) 
 
 }
 
-// Delete a post
-func (controller postController) Delete(w http.ResponseWriter, r *http.Request) {}
+// Delete deletes a post
+func (controller postController) Delete(w http.ResponseWriter, r *http.Request) {
+	userID, err := authentication.ExtractUserID(r)
+	if err != nil {
+		response.Error(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	params := mux.Vars(r)
+
+	postID, err := strconv.ParseUint(params["postID"], 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewPostRepository(db)
+
+	storedPost, err := repository.FindByID(postID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	if userID != storedPost.AuthorID {
+		response.Error(w, http.StatusForbidden, errors.New("you cannot delete a post that is not yours"))
+		return
+	}
+
+	err = repository.Delete(postID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusNoContent, nil)
+}
