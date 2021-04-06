@@ -255,3 +255,61 @@ func (controller postController) FindByUser(w http.ResponseWriter, r *http.Reque
 
 	response.JSON(w, http.StatusOK, post)
 }
+
+// LikePost increases the number of likes in a post
+func (controller postController) LikePost(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	postID, err := strconv.ParseUint(params["postID"], 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewPostRepository(db)
+
+	err = repository.LikePost(postID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusNoContent, nil)
+
+}
+
+// DeslikePost decreases the number of likes in a post
+func (controller postController) DeslikePost(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	postID, err := strconv.ParseUint(params["postID"], 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewPostRepository(db)
+
+	err = repository.DeslikePost(postID)
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusNoContent, nil)
+
+}

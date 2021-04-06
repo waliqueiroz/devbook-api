@@ -168,3 +168,39 @@ func (repository postRepository) FindByUser(userID uint64) ([]model.Post, error)
 
 	return posts, nil
 }
+
+// LikePost increases the number of likes in a post
+func (repository postRepository) LikePost(postID uint64) error {
+
+	statement, err := repository.db.Prepare("update posts set likes = likes + 1 where id = ?")
+
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	_, err = statement.Exec(postID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeslikePost decreases the number of likes in a post
+func (repository postRepository) DeslikePost(postID uint64) error {
+
+	statement, err := repository.db.Prepare("update posts set likes = case when likes > 0 then likes - 1 else 0 end where id = ?")
+
+	if err != nil {
+		return err
+	}
+	defer statement.Close()
+
+	_, err = statement.Exec(postID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
