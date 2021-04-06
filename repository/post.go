@@ -133,3 +133,38 @@ func (repository postRepository) Delete(postID uint64) error {
 
 	return nil
 }
+
+// FindByUser returns all posts from a given user
+func (repository postRepository) FindByUser(userID uint64) ([]model.Post, error) {
+
+	rows, err := repository.db.Query(`select distinct
+										p.*,
+										u.nick
+									from
+										posts p
+									join users u on
+										p.author_id = u.id
+									where
+										u.id = ?`, userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var posts []model.Post
+
+	for rows.Next() {
+		var post model.Post
+		err = rows.Scan(&post.ID, &post.Title, &post.Content, &post.AuthorID, &post.Likes, &post.CreatedAt, &post.AuthorNick)
+
+		if err != nil {
+			return nil, err
+		}
+
+		posts = append(posts, post)
+	}
+
+	return posts, nil
+}

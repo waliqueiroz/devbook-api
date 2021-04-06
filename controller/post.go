@@ -226,3 +226,32 @@ func (controller postController) Delete(w http.ResponseWriter, r *http.Request) 
 
 	response.JSON(w, http.StatusNoContent, nil)
 }
+
+// FindByUser returns all posts from a given user
+func (controller postController) FindByUser(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	userID, err := strconv.ParseUint(params["userID"], 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connect()
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repository.NewPostRepository(db)
+
+	post, err := repository.FindByUser(userID)
+
+	if err != nil {
+		response.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusOK, post)
+}
