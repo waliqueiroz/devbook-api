@@ -16,24 +16,29 @@ func NewPostRepository(db *sql.DB) *PostRepository {
 }
 
 // Create inserts a post into database
-func (repository PostRepository) Create(post model.Post) (uint64, error) {
+func (repository PostRepository) Create(post model.Post) (model.Post, error) {
 	statement, err := repository.db.Prepare("insert into posts (title, content, author_id) values (?, ?, ?)")
 	if err != nil {
-		return 0, err
+		return model.Post{}, err
 	}
 	defer statement.Close()
 
 	result, err := statement.Exec(post.Title, post.Content, post.AuthorID)
 	if err != nil {
-		return 0, err
+		return model.Post{}, err
 	}
 
 	lastInsertID, err := result.LastInsertId()
 	if err != nil {
-		return 0, err
+		return model.Post{}, err
 	}
 
-	return uint64(lastInsertID), nil
+	newPost, err := repository.FindByID(uint64(lastInsertID))
+	if err != nil {
+		return model.Post{}, err
+	}
+
+	return newPost, nil
 }
 
 // FindByID returns a post that match with a given ID

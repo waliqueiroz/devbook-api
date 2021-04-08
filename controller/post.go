@@ -70,13 +70,13 @@ func (controller PostController) Create(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	post.ID, err = controller.postRepository.Create(post)
+	newPost, err := controller.postRepository.Create(post)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	response.JSON(w, http.StatusCreated, post)
+	response.JSON(w, http.StatusCreated, newPost)
 }
 
 // Show shows a post

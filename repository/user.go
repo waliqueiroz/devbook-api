@@ -17,24 +17,29 @@ func NewUserRepository(db *sql.DB) *UserRepository {
 }
 
 // Create inserts a user into database
-func (repository UserRepository) Create(user model.User) (uint64, error) {
+func (repository UserRepository) Create(user model.User) (model.User, error) {
 	statement, err := repository.db.Prepare("insert into users (name, nick, email, password) values (?, ?, ?, ?)")
 	if err != nil {
-		return 0, err
+		return model.User{}, err
 	}
 	defer statement.Close()
 
 	result, err := statement.Exec(user.Name, user.Nick, user.Email, user.Password)
 	if err != nil {
-		return 0, err
+		return model.User{}, err
 	}
 
 	lastInsertID, err := result.LastInsertId()
 	if err != nil {
-		return 0, err
+		return model.User{}, err
 	}
 
-	return uint64(lastInsertID), nil
+	newUser, err := repository.FindByID(uint64(lastInsertID))
+	if err != nil {
+		return model.User{}, err
+	}
+
+	return newUser, nil
 }
 
 // FindByNameOrNick returns all users that name or nick match with the argument

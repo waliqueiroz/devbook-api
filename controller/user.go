@@ -61,14 +61,14 @@ func (controller UserController) Create(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	user.ID, err = controller.userRepository.Create(user)
+	newUser, err := controller.userRepository.Create(user)
 
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	response.JSON(w, http.StatusCreated, user)
+	response.JSON(w, http.StatusCreated, newUser)
 }
 
 // Show returns a specific user
