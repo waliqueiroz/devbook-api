@@ -6,22 +6,25 @@ import (
 	"net/http"
 
 	"github.com/waliqueiroz/devbook-api/authentication"
-	"github.com/waliqueiroz/devbook-api/database"
 	"github.com/waliqueiroz/devbook-api/model"
 	"github.com/waliqueiroz/devbook-api/repository"
 	"github.com/waliqueiroz/devbook-api/response"
 	"github.com/waliqueiroz/devbook-api/security"
 )
 
-type authController struct{}
+type AuthController struct {
+	userRepository *repository.UserRepository
+}
 
-// NewAuthController creates a new authController
-func NewAuthController() *authController {
-	return &authController{}
+// NewAuthController creates a new AuthController
+func NewAuthController(userRepository *repository.UserRepository) *AuthController {
+	return &AuthController{
+		userRepository,
+	}
 }
 
 // Login authenticates an user
-func (controller authController) Login(w http.ResponseWriter, r *http.Request) {
+func (controller AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		response.Error(w, http.StatusUnprocessableEntity, err)
@@ -35,16 +38,7 @@ func (controller authController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := database.Connect()
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
-	repository := repository.NewUserRepository(db)
-
-	storedUser, err := repository.FindByEmail(user.Email)
+	storedUser, err := controller.userRepository.FindByEmail(user.Email)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
