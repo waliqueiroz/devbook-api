@@ -4,15 +4,16 @@ import (
 	"net/http"
 
 	"github.com/waliqueiroz/devbook-api/controller"
+	"github.com/waliqueiroz/devbook-api/router"
 )
 
-var authController = controller.NewAuthController()
-
-var authRoutes = []Route{
-	{
-		URI:          "/login",
-		Method:       http.MethodPost,
-		Function:     authController.Login,
-		RequiresAuth: false,
-	},
+func Auth(authController *controller.AuthController) []router.Route {
+	return []router.Route{
+		{
+			URI:          "/login",
+			Method:       http.MethodPost,
+			Function:     authController.Login,
+			RequiresAuth: false,
+		},
+	}
 }

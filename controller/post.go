@@ -9,36 +9,30 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/waliqueiroz/devbook-api/authentication"
-	"github.com/waliqueiroz/devbook-api/database"
 	"github.com/waliqueiroz/devbook-api/model"
 	"github.com/waliqueiroz/devbook-api/repository"
 	"github.com/waliqueiroz/devbook-api/response"
 )
 
-type postController struct{}
+type PostController struct {
+	postRepository *repository.PostRepository
+}
 
-func NewPostController() *postController {
-	return &postController{}
+func NewPostController(postRepository *repository.PostRepository) *PostController {
+	return &PostController{
+		postRepository,
+	}
 }
 
 // Index shows all posts by a user and from who they are following
-func (controller postController) Index(w http.ResponseWriter, r *http.Request) {
+func (controller PostController) Index(w http.ResponseWriter, r *http.Request) {
 	userID, err := authentication.ExtractUserID(r)
 	if err != nil {
 		response.Error(w, http.StatusUnauthorized, err)
 		return
 	}
 
-	db, err := database.Connect()
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
-	repository := repository.NewPostRepository(db)
-
-	posts, err := repository.Index(userID)
+	posts, err := controller.postRepository.Index(userID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
@@ -49,7 +43,7 @@ func (controller postController) Index(w http.ResponseWriter, r *http.Request) {
 }
 
 // Create creates a post
-func (controller postController) Create(w http.ResponseWriter, r *http.Request) {
+func (controller PostController) Create(w http.ResponseWriter, r *http.Request) {
 	userID, err := authentication.ExtractUserID(r)
 	if err != nil {
 		response.Error(w, http.StatusUnauthorized, err)
@@ -76,16 +70,7 @@ func (controller postController) Create(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	db, err := database.Connect()
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
-	repository := repository.NewPostRepository(db)
-
-	post.ID, err = repository.Create(post)
+	post.ID, err = controller.postRepository.Create(post)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
@@ -95,7 +80,7 @@ func (controller postController) Create(w http.ResponseWriter, r *http.Request) 
 }
 
 // Show shows a post
-func (controller postController) Show(w http.ResponseWriter, r *http.Request) {
+func (controller PostController) Show(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	postID, err := strconv.ParseUint(params["postID"], 10, 64)
@@ -104,16 +89,7 @@ func (controller postController) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := database.Connect()
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
-	repository := repository.NewPostRepository(db)
-
-	post, err := repository.FindByID(postID)
+	post, err := controller.postRepository.FindByID(postID)
 
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
@@ -124,7 +100,7 @@ func (controller postController) Show(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update updates a post
-func (controller postController) Update(w http.ResponseWriter, r *http.Request) {
+func (controller PostController) Update(w http.ResponseWriter, r *http.Request) {
 	userID, err := authentication.ExtractUserID(r)
 	if err != nil {
 		response.Error(w, http.StatusUnauthorized, err)
@@ -139,16 +115,7 @@ func (controller postController) Update(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	db, err := database.Connect()
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
-	repository := repository.NewPostRepository(db)
-
-	storedPost, err := repository.FindByID(postID)
+	storedPost, err := controller.postRepository.FindByID(postID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
@@ -172,7 +139,7 @@ func (controller postController) Update(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = repository.Update(postID, post)
+	err = controller.postRepository.Update(postID, post)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
@@ -183,7 +150,7 @@ func (controller postController) Update(w http.ResponseWriter, r *http.Request) 
 }
 
 // Delete deletes a post
-func (controller postController) Delete(w http.ResponseWriter, r *http.Request) {
+func (controller PostController) Delete(w http.ResponseWriter, r *http.Request) {
 	userID, err := authentication.ExtractUserID(r)
 	if err != nil {
 		response.Error(w, http.StatusUnauthorized, err)
@@ -198,16 +165,7 @@ func (controller postController) Delete(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	db, err := database.Connect()
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
-	repository := repository.NewPostRepository(db)
-
-	storedPost, err := repository.FindByID(postID)
+	storedPost, err := controller.postRepository.FindByID(postID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
@@ -218,7 +176,7 @@ func (controller postController) Delete(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = repository.Delete(postID)
+	err = controller.postRepository.Delete(postID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
@@ -228,7 +186,7 @@ func (controller postController) Delete(w http.ResponseWriter, r *http.Request) 
 }
 
 // FindByUser returns all posts from a given user
-func (controller postController) FindByUser(w http.ResponseWriter, r *http.Request) {
+func (controller PostController) FindByUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	userID, err := strconv.ParseUint(params["userID"], 10, 64)
@@ -237,16 +195,7 @@ func (controller postController) FindByUser(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	db, err := database.Connect()
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
-	repository := repository.NewPostRepository(db)
-
-	post, err := repository.FindByUser(userID)
+	post, err := controller.postRepository.FindByUser(userID)
 
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
@@ -257,7 +206,7 @@ func (controller postController) FindByUser(w http.ResponseWriter, r *http.Reque
 }
 
 // LikePost increases the number of likes in a post
-func (controller postController) LikePost(w http.ResponseWriter, r *http.Request) {
+func (controller PostController) LikePost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	postID, err := strconv.ParseUint(params["postID"], 10, 64)
@@ -266,16 +215,7 @@ func (controller postController) LikePost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	db, err := database.Connect()
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
-	repository := repository.NewPostRepository(db)
-
-	err = repository.LikePost(postID)
+	err = controller.postRepository.LikePost(postID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return
@@ -286,7 +226,7 @@ func (controller postController) LikePost(w http.ResponseWriter, r *http.Request
 }
 
 // DeslikePost decreases the number of likes in a post
-func (controller postController) DeslikePost(w http.ResponseWriter, r *http.Request) {
+func (controller PostController) DeslikePost(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	postID, err := strconv.ParseUint(params["postID"], 10, 64)
@@ -295,16 +235,7 @@ func (controller postController) DeslikePost(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	db, err := database.Connect()
-	if err != nil {
-		response.Error(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
-	repository := repository.NewPostRepository(db)
-
-	err = repository.DeslikePost(postID)
+	err = controller.postRepository.DeslikePost(postID)
 	if err != nil {
 		response.Error(w, http.StatusInternalServerError, err)
 		return

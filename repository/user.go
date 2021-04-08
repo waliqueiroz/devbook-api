@@ -7,17 +7,17 @@ import (
 	"github.com/waliqueiroz/devbook-api/model"
 )
 
-type userRepository struct {
+type UserRepository struct {
 	db *sql.DB
 }
 
 // NewUserRepository creates a new user repository
-func NewUserRepository(db *sql.DB) *userRepository {
-	return &userRepository{db}
+func NewUserRepository(db *sql.DB) *UserRepository {
+	return &UserRepository{db}
 }
 
 // Create inserts a user into database
-func (repository userRepository) Create(user model.User) (uint64, error) {
+func (repository UserRepository) Create(user model.User) (uint64, error) {
 	statement, err := repository.db.Prepare("insert into users (name, nick, email, password) values (?, ?, ?, ?)")
 	if err != nil {
 		return 0, err
@@ -38,7 +38,7 @@ func (repository userRepository) Create(user model.User) (uint64, error) {
 }
 
 // FindByNameOrNick returns all users that name or nick match with the argument
-func (repository userRepository) FindByNameOrNick(nameOrNick string) ([]model.User, error) {
+func (repository UserRepository) FindByNameOrNick(nameOrNick string) ([]model.User, error) {
 	nameOrNick = fmt.Sprintf("%%%s%%", nameOrNick)
 
 	rows, err := repository.db.Query("select id, name, nick, email, created_at from users where name like ? or nick like ?", nameOrNick, nameOrNick)
@@ -67,7 +67,7 @@ func (repository userRepository) FindByNameOrNick(nameOrNick string) ([]model.Us
 }
 
 // FindByID returns a user thar match with a given ID
-func (repository userRepository) FindByID(userID uint64) (model.User, error) {
+func (repository UserRepository) FindByID(userID uint64) (model.User, error) {
 
 	rows, err := repository.db.Query("select id, name, nick, email, created_at from users where id = ?", userID)
 
@@ -93,7 +93,7 @@ func (repository userRepository) FindByID(userID uint64) (model.User, error) {
 }
 
 // Update updates a user in database
-func (repository userRepository) Update(userID uint64, user model.User) error {
+func (repository UserRepository) Update(userID uint64, user model.User) error {
 
 	statement, err := repository.db.Prepare("update users set name = ?, nick = ?, email = ? where id = ?")
 
@@ -111,7 +111,7 @@ func (repository userRepository) Update(userID uint64, user model.User) error {
 }
 
 // Delete deletes a user in database
-func (repository userRepository) Delete(userID uint64) error {
+func (repository UserRepository) Delete(userID uint64) error {
 
 	statement, err := repository.db.Prepare("delete from users where id = ?")
 
@@ -129,7 +129,7 @@ func (repository userRepository) Delete(userID uint64) error {
 }
 
 // FindByEmail returns all users that email match with the argument
-func (repository userRepository) FindByEmail(email string) (model.User, error) {
+func (repository UserRepository) FindByEmail(email string) (model.User, error) {
 
 	rows, err := repository.db.Query("select id, password from users where email = ?", email)
 
@@ -155,7 +155,7 @@ func (repository userRepository) FindByEmail(email string) (model.User, error) {
 }
 
 // Follow allows a user to follow another
-func (repository userRepository) Follow(userID, followerID uint64) error {
+func (repository UserRepository) Follow(userID, followerID uint64) error {
 	statement, err := repository.db.Prepare("insert ignore into followers (user_id, follower_id) values (?, ?)")
 	if err != nil {
 		return err
@@ -171,7 +171,7 @@ func (repository userRepository) Follow(userID, followerID uint64) error {
 }
 
 // Unfollow allows a user to unfollow another
-func (repository userRepository) Unfollow(userID, followerID uint64) error {
+func (repository UserRepository) Unfollow(userID, followerID uint64) error {
 	statement, err := repository.db.Prepare("delete from followers where user_id = ? and follower_id = ?")
 	if err != nil {
 		return err
@@ -187,7 +187,7 @@ func (repository userRepository) Unfollow(userID, followerID uint64) error {
 }
 
 // SearchFollowers returns a list of followers for a given user
-func (repository userRepository) SearchFollowers(userID uint64) ([]model.User, error) {
+func (repository UserRepository) SearchFollowers(userID uint64) ([]model.User, error) {
 	rows, err := repository.db.Query(`select u.id, u.name, u.nick, u.email, u.created_at 
 									from users u join followers f on u.id = f.follower_id where f.user_id = ?`,
 		userID)
@@ -216,7 +216,7 @@ func (repository userRepository) SearchFollowers(userID uint64) ([]model.User, e
 }
 
 // SearchFollowing returns a list of users that a given user is following
-func (repository userRepository) SearchFollowing(userID uint64) ([]model.User, error) {
+func (repository UserRepository) SearchFollowing(userID uint64) ([]model.User, error) {
 	rows, err := repository.db.Query(`select u.id, u.name, u.nick, u.email, u.created_at 
 									from users u join followers f on u.id = f.user_id where f.follower_id = ?`,
 		userID)
@@ -245,7 +245,7 @@ func (repository userRepository) SearchFollowing(userID uint64) ([]model.User, e
 }
 
 // FindPassword returns the hashed password of a given user
-func (repository userRepository) FindPassword(userID uint64) (string, error) {
+func (repository UserRepository) FindPassword(userID uint64) (string, error) {
 	rows, err := repository.db.Query(`select password from users where id = ?`,
 		userID)
 	if err != nil {
@@ -270,7 +270,7 @@ func (repository userRepository) FindPassword(userID uint64) (string, error) {
 }
 
 // UpdatePassword updates the password for a given user
-func (repository userRepository) UpdatePassword(userID uint64, password string) error {
+func (repository UserRepository) UpdatePassword(userID uint64, password string) error {
 	statement, err := repository.db.Prepare("update users set password = ? where id = ?")
 	if err != nil {
 		return err

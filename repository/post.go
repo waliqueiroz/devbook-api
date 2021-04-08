@@ -6,17 +6,17 @@ import (
 	"github.com/waliqueiroz/devbook-api/model"
 )
 
-type postRepository struct {
+type PostRepository struct {
 	db *sql.DB
 }
 
 // NewPostRepository creates a new post repository
-func NewPostRepository(db *sql.DB) *postRepository {
-	return &postRepository{db}
+func NewPostRepository(db *sql.DB) *PostRepository {
+	return &PostRepository{db}
 }
 
 // Create inserts a post into database
-func (repository postRepository) Create(post model.Post) (uint64, error) {
+func (repository PostRepository) Create(post model.Post) (uint64, error) {
 	statement, err := repository.db.Prepare("insert into posts (title, content, author_id) values (?, ?, ?)")
 	if err != nil {
 		return 0, err
@@ -37,7 +37,7 @@ func (repository postRepository) Create(post model.Post) (uint64, error) {
 }
 
 // FindByID returns a post that match with a given ID
-func (repository postRepository) FindByID(postID uint64) (model.Post, error) {
+func (repository PostRepository) FindByID(postID uint64) (model.Post, error) {
 
 	rows, err := repository.db.Query("select p.*, u.nick from posts p join users u on p.author_id = u.id where p.id = ?", postID)
 
@@ -63,7 +63,7 @@ func (repository postRepository) FindByID(postID uint64) (model.Post, error) {
 }
 
 // Index returns all posts by a user and from who they are following
-func (repository postRepository) Index(userID uint64) ([]model.Post, error) {
+func (repository PostRepository) Index(userID uint64) ([]model.Post, error) {
 
 	rows, err := repository.db.Query(`select distinct
 										p.*,
@@ -100,7 +100,7 @@ func (repository postRepository) Index(userID uint64) ([]model.Post, error) {
 }
 
 // Update updates a post in database
-func (repository postRepository) Update(postID uint64, post model.Post) error {
+func (repository PostRepository) Update(postID uint64, post model.Post) error {
 
 	statement, err := repository.db.Prepare("update posts set title = ?, content = ? where id = ?")
 
@@ -118,7 +118,7 @@ func (repository postRepository) Update(postID uint64, post model.Post) error {
 }
 
 // Update deletes a post from database
-func (repository postRepository) Delete(postID uint64) error {
+func (repository PostRepository) Delete(postID uint64) error {
 	statement, err := repository.db.Prepare("delete from posts where id = ?")
 
 	if err != nil {
@@ -135,7 +135,7 @@ func (repository postRepository) Delete(postID uint64) error {
 }
 
 // FindByUser returns all posts from a given user
-func (repository postRepository) FindByUser(userID uint64) ([]model.Post, error) {
+func (repository PostRepository) FindByUser(userID uint64) ([]model.Post, error) {
 
 	rows, err := repository.db.Query(`select distinct
 										p.*,
@@ -170,7 +170,7 @@ func (repository postRepository) FindByUser(userID uint64) ([]model.Post, error)
 }
 
 // LikePost increases the number of likes in a post
-func (repository postRepository) LikePost(postID uint64) error {
+func (repository PostRepository) LikePost(postID uint64) error {
 
 	statement, err := repository.db.Prepare("update posts set likes = likes + 1 where id = ?")
 
@@ -188,7 +188,7 @@ func (repository postRepository) LikePost(postID uint64) error {
 }
 
 // DeslikePost decreases the number of likes in a post
-func (repository postRepository) DeslikePost(postID uint64) error {
+func (repository PostRepository) DeslikePost(postID uint64) error {
 
 	statement, err := repository.db.Prepare("update posts set likes = case when likes > 0 then likes - 1 else 0 end where id = ?")
 
