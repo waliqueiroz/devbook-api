@@ -6,18 +6,18 @@ import (
 	"net/http"
 
 	"github.com/waliqueiroz/devbook-api/authentication"
+	"github.com/waliqueiroz/devbook-api/interfaces"
 	"github.com/waliqueiroz/devbook-api/model"
-	"github.com/waliqueiroz/devbook-api/repository"
 	"github.com/waliqueiroz/devbook-api/response"
 	"github.com/waliqueiroz/devbook-api/security"
 )
 
 type AuthController struct {
-	userRepository *repository.UserRepository
+	userRepository interfaces.UserRepository
 }
 
 // NewAuthController creates a new AuthController
-func NewAuthController(userRepository *repository.UserRepository) *AuthController {
+func NewAuthController(userRepository interfaces.UserRepository) *AuthController {
 	return &AuthController{
 		userRepository,
 	}
