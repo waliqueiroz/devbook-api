@@ -2,13 +2,12 @@ package mock
 
 import "errors"
 
-type errReader struct{}
+type reader struct{}
 
-// NewUserRepository creates a new user repository
-func NewReader() *errReader {
-	return &errReader{}
+func NewReader() *reader {
+	return &reader{}
 }
 
-func (e errReader) Read(p []byte) (n int, err error) {
+func (r reader) Read(p []byte) (n int, err error) {
 	return 0, errors.New("test error")
 }
