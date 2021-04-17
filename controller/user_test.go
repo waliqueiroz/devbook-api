@@ -2,7 +2,6 @@ package controller_test
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -15,12 +14,6 @@ import (
 	"github.com/waliqueiroz/devbook-api/model"
 	"github.com/waliqueiroz/devbook-api/test/mock"
 )
-
-type errReader int
-
-func (errReader) Read(p []byte) (n int, err error) {
-	return 0, errors.New("test error")
-}
 
 // TestCreateUser run test for user creation
 func TestCreateUser(t *testing.T) {
@@ -45,7 +38,7 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			name:               "Create invalid body payload",
-			input:              errReader(0),
+			input:              mock.NewReader(),
 			expectedStatusCode: http.StatusUnprocessableEntity,
 		},
 		{
