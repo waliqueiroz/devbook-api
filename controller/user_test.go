@@ -53,7 +53,7 @@ func TestCreateUser(t *testing.T) {
 		},
 	}
 
-	userRepository := mock.NewUserRepositoryMock()
+	userRepository := mock.NewUserRepository()
 	userController := controller.NewUserController(userRepository)
 
 	for _, subTest := range subTests {

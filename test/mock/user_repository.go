@@ -10,7 +10,7 @@ import (
 type UserRepositoryMock struct{}
 
 // NewUserRepository creates a new user repository
-func NewUserRepositoryMock() *UserRepositoryMock {
+func NewUserRepository() *UserRepositoryMock {
 	return &UserRepositoryMock{}
 }
 
