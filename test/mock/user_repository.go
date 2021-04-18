@@ -41,7 +41,13 @@ func (repository UserRepositoryMock) Delete(userID uint64) error {
 
 // FindByEmail returns all users that email match with the argument
 func (repository UserRepositoryMock) FindByEmail(email string) (model.User, error) {
-	return model.User{}, nil
+	storedUserJson, _ := ioutil.ReadFile("../test/resource/json/stored_user.json")
+
+	var storedUser model.User
+
+	json.Unmarshal(storedUserJson, &storedUser)
+
+	return storedUser, nil
 }
 
 // Follow allows a user to follow another

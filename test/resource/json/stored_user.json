@@ -1,8 +1,4 @@
 {
 	"id": 1,
-	"name": "Juliette",
-	"nick": "juliette",
-	"email": "juliette@mail.com",
-	"password": "$2a$10$finFsyhIR/7UK/8nKmlUu.kdN.Vw3AaHBHBMZlp1HiP3J2JpMgkI6",
-	"created_at": "2021-04-08T14:36:57-03:00"
+	"password": "$2a$10$finFsyhIR/7UK/8nKmlUu.kdN.Vw3AaHBHBMZlp1HiP3J2JpMgkI6"
 }
