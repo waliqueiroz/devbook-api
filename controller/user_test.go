@@ -1,14 +1,15 @@
 package controller_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/waliqueiroz/devbook-api/controller"
 	"github.com/waliqueiroz/devbook-api/model"
@@ -21,8 +22,10 @@ func TestCreateUser(t *testing.T) {
 	invalidInputUserJson, _ := ioutil.ReadFile("../test/resource/json/invalid_input_user.json")
 	incompleteInputUserJson, _ := ioutil.ReadFile("../test/resource/json/incomplete_input_user.json")
 
+	expectedUserJson, _ := ioutil.ReadFile("../test/resource/json/created_user.json")
+
 	var expectedUser model.User
-	json.Unmarshal(inputUserJson, &expectedUser)
+	json.Unmarshal(expectedUserJson, &expectedUser)
 
 	subTests := []struct {
 		name               string
@@ -32,7 +35,7 @@ func TestCreateUser(t *testing.T) {
 	}{
 		{
 			name:               "Create valid user",
-			input:              strings.NewReader(string(inputUserJson)),
+			input:              bytes.NewReader(inputUserJson),
 			expectedStatusCode: http.StatusCreated,
 			expectedResponse:   expectedUser,
 		},
@@ -43,12 +46,12 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			name:               "Create invalid user",
-			input:              strings.NewReader(string(invalidInputUserJson)),
+			input:              bytes.NewReader(invalidInputUserJson),
 			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
 			name:               "Create incomplete user",
-			input:              strings.NewReader(string(incompleteInputUserJson)),
+			input:              bytes.NewReader(incompleteInputUserJson),
 			expectedStatusCode: http.StatusBadRequest,
 		},
 	}
@@ -65,16 +68,89 @@ func TestCreateUser(t *testing.T) {
 
 			userController.Create(response, request)
 
-			assert.Equal(t, subTest.expectedStatusCode, response.Result().StatusCode, "Status code does not match with expected")
+			assert.Equal(t, subTest.expectedStatusCode, response.Code, "Status code does not match with expected")
 
 			if subTest.expectedStatusCode == http.StatusCreated {
 				var createdUser model.User
-
 				json.Unmarshal(response.Body.Bytes(), &createdUser)
 
-				assert.Equal(t, subTest.expectedResponse.Name, createdUser.Name, "User name does not match with expected")
-				assert.Equal(t, subTest.expectedResponse.Email, createdUser.Email, "User email does not match with expected")
-				assert.Equal(t, subTest.expectedResponse.Nick, createdUser.Nick, "User nick does not match with expected")
+				assert.Equal(t, subTest.expectedResponse, createdUser, "Created user does not match with expected")
+			} else {
+				assert.NotEmpty(t, response.Body.String(), "Response body is empty")
+			}
+		})
+	}
+}
+
+func TestFindUsers(t *testing.T) {
+	expectedUserListJson, _ := ioutil.ReadFile("../test/resource/json/stored_user_list.json")
+
+	var expectedUserList []model.User
+	json.Unmarshal(expectedUserListJson, &expectedUserList)
+
+	userRepository := mock.NewUserRepository()
+	userController := controller.NewUserController(userRepository)
+
+	request := httptest.NewRequest("GET", "/users?user=Juliette", nil)
+	request.Header.Add("Content-Type", "application/json")
+
+	response := httptest.NewRecorder()
+
+	userController.Index(response, request)
+
+	var userList []model.User
+	json.Unmarshal(response.Body.Bytes(), &userList)
+
+	assert.Equal(t, http.StatusOK, response.Result().StatusCode, "Status code does not match with expected")
+	assert.Equal(t, expectedUserList, userList, "User list does not match with expected")
+}
+
+func TestShowUser(t *testing.T) {
+	expectedUserJson, _ := ioutil.ReadFile("../test/resource/json/created_user.json")
+
+	var expectedUser model.User
+	json.Unmarshal(expectedUserJson, &expectedUser)
+
+	subTests := []struct {
+		name               string
+		routeVariable      string
+		expectedStatusCode int
+		expectedResponse   model.User
+	}{
+		{
+			name:               "Get with a valid user ID",
+			routeVariable:      "1",
+			expectedStatusCode: http.StatusOK,
+			expectedResponse:   expectedUser,
+		},
+		{
+			name:               "Get with a invalid user ID",
+			routeVariable:      "teste",
+			expectedStatusCode: http.StatusBadRequest,
+		},
+	}
+
+	userRepository := mock.NewUserRepository()
+	userController := controller.NewUserController(userRepository)
+
+	for _, subTest := range subTests {
+		t.Run(subTest.name, func(t *testing.T) {
+			request := httptest.NewRequest("GET", "/users/"+subTest.routeVariable, nil)
+			request = mux.SetURLVars(request, map[string]string{
+				"userID": subTest.routeVariable,
+			})
+			request.Header.Add("Content-Type", "application/json")
+
+			response := httptest.NewRecorder()
+
+			userController.Show(response, request)
+
+			assert.Equal(t, subTest.expectedStatusCode, response.Code, "Status code does not match with expected")
+
+			if subTest.expectedStatusCode == http.StatusOK {
+				var createdUser model.User
+				json.Unmarshal(response.Body.Bytes(), &createdUser)
+				assert.Equal(t, subTest.expectedResponse, createdUser, "Created user does not match with expected")
 			} else {
 				assert.NotEmpty(t, response.Body.String(), "Response body is empty")
 			}

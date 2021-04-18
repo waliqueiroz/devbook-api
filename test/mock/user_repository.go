@@ -16,24 +16,17 @@ func NewUserRepository() *UserRepositoryMock {
 
 // Create inserts a user into database
 func (repository UserRepositoryMock) Create(user model.User) (model.User, error) {
-	storedUserJson, _ := ioutil.ReadFile("../test/resource/json/stored_user.json")
-
-	var storedUser model.User
-
-	json.Unmarshal(storedUserJson, &storedUser)
-
-	return storedUser, nil
+	return repository.getStoredUser()
 }
 
 // FindByNameOrNick returns all users that name or nick match with the argument
 func (repository UserRepositoryMock) FindByNameOrNick(nameOrNick string) ([]model.User, error) {
-
-	return []model.User{}, nil
+	return repository.getStoredUserList()
 }
 
 // FindByID returns a user thar match with a given ID
 func (repository UserRepositoryMock) FindByID(userID uint64) (model.User, error) {
-	return model.User{}, nil
+	return repository.getStoredUser()
 }
 
 // Update updates a user in database
@@ -81,4 +74,24 @@ func (repository UserRepositoryMock) FindPassword(userID uint64) (string, error)
 // UpdatePassword updates the password for a given user
 func (repository UserRepositoryMock) UpdatePassword(userID uint64, password string) error {
 	return nil
+}
+
+func (repository UserRepositoryMock) getStoredUser() (model.User, error) {
+	storedUserJson, _ := ioutil.ReadFile("../test/resource/json/created_user.json")
+
+	var storedUser model.User
+
+	json.Unmarshal(storedUserJson, &storedUser)
+
+	return storedUser, nil
+}
+
+func (repository UserRepositoryMock) getStoredUserList() ([]model.User, error) {
+	storedUserlistJson, _ := ioutil.ReadFile("../test/resource/json/stored_user_list.json")
+
+	var storedUserList []model.User
+
+	json.Unmarshal(storedUserlistJson, &storedUserList)
+
+	return storedUserList, nil
 }
