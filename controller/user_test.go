@@ -3,6 +3,7 @@ package controller_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+	"github.com/waliqueiroz/devbook-api/authentication"
 	"github.com/waliqueiroz/devbook-api/controller"
 	"github.com/waliqueiroz/devbook-api/model"
 	"github.com/waliqueiroz/devbook-api/test/mock"
@@ -18,9 +20,9 @@ import (
 
 // TestCreateUser run test for user creation
 func TestCreateUser(t *testing.T) {
-	inputUserJson, _ := ioutil.ReadFile("../test/resource/json/input_user.json")
-	invalidInputUserJson, _ := ioutil.ReadFile("../test/resource/json/invalid_input_user.json")
-	incompleteInputUserJson, _ := ioutil.ReadFile("../test/resource/json/incomplete_input_user.json")
+	userInputJson, _ := ioutil.ReadFile("../test/resource/json/user_input.json")
+	invalidUserInputJson, _ := ioutil.ReadFile("../test/resource/json/invalid_user_input.json")
+	incompleteUserInputJson, _ := ioutil.ReadFile("../test/resource/json/incomplete_user_input.json")
 
 	expectedUserJson, _ := ioutil.ReadFile("../test/resource/json/created_user.json")
 
@@ -34,24 +36,24 @@ func TestCreateUser(t *testing.T) {
 		expectedResponse   model.User
 	}{
 		{
-			name:               "Create valid user",
-			input:              bytes.NewReader(inputUserJson),
+			name:               "Create user with valid data",
+			input:              bytes.NewReader(userInputJson),
 			expectedStatusCode: http.StatusCreated,
 			expectedResponse:   expectedUser,
 		},
 		{
-			name:               "Create invalid body payload",
+			name:               "Create user with invalid body payload",
 			input:              mock.NewReader(),
 			expectedStatusCode: http.StatusUnprocessableEntity,
 		},
 		{
-			name:               "Create invalid user",
-			input:              bytes.NewReader(invalidInputUserJson),
+			name:               "Create user with invalid data",
+			input:              bytes.NewReader(invalidUserInputJson),
 			expectedStatusCode: http.StatusBadRequest,
 		},
 		{
-			name:               "Create incomplete user",
-			input:              bytes.NewReader(incompleteInputUserJson),
+			name:               "Create user with incomplete data",
+			input:              bytes.NewReader(incompleteUserInputJson),
 			expectedStatusCode: http.StatusBadRequest,
 		},
 	}
@@ -124,7 +126,7 @@ func TestShowUser(t *testing.T) {
 			expectedResponse:   expectedUser,
 		},
 		{
-			name:               "Get with a invalid user ID",
+			name:               "Get with an invalid user ID",
 			routeVariable:      "teste",
 			expectedStatusCode: http.StatusBadRequest,
 		},
@@ -152,6 +154,165 @@ func TestShowUser(t *testing.T) {
 				json.Unmarshal(response.Body.Bytes(), &createdUser)
 				assert.Equal(t, subTest.expectedResponse, createdUser, "Created user does not match with expected")
 			} else {
+				assert.NotEmpty(t, response.Body.String(), "Response body is empty")
+			}
+		})
+	}
+}
+
+func TestUpdateUser(t *testing.T) {
+	userInputJson, _ := ioutil.ReadFile("../test/resource/json/user_input_update.json")
+	invalidUserInputJson, _ := ioutil.ReadFile("../test/resource/json/invalid_user_input.json")
+	incompleteUserInputJson, _ := ioutil.ReadFile("../test/resource/json/incomplete_user_input.json")
+
+	expectedUserJson, _ := ioutil.ReadFile("../test/resource/json/created_user.json")
+
+	var expectedUser model.User
+	json.Unmarshal(expectedUserJson, &expectedUser)
+
+	userID := uint64(1)
+	token, _ := authentication.CreateToken(userID)
+
+	subTests := []struct {
+		name               string
+		input              io.Reader
+		routeVariable      string
+		expectedStatusCode int
+		token              string
+	}{
+		{
+			name:               "Update user with valid data",
+			input:              bytes.NewReader(userInputJson),
+			routeVariable:      fmt.Sprintf("%d", userID),
+			expectedStatusCode: http.StatusNoContent,
+			token:              token,
+		},
+		{
+			name:               "Update user with an invalid authorization token",
+			input:              bytes.NewReader(userInputJson),
+			routeVariable:      fmt.Sprintf("%d", userID),
+			expectedStatusCode: http.StatusUnauthorized,
+			token:              "teste=",
+		},
+		{
+			name:               "Update user with an invalid user ID",
+			input:              bytes.NewReader(userInputJson),
+			routeVariable:      "teste",
+			expectedStatusCode: http.StatusBadRequest,
+			token:              token,
+		},
+		{
+			name:               "Update user with invalid body payload",
+			input:              mock.NewReader(),
+			routeVariable:      fmt.Sprintf("%d", userID),
+			expectedStatusCode: http.StatusUnprocessableEntity,
+			token:              token,
+		},
+		{
+			name:               "Try to update a user other than your own",
+			input:              bytes.NewReader(userInputJson),
+			routeVariable:      "2",
+			expectedStatusCode: http.StatusForbidden,
+			token:              token,
+		},
+		{
+			name:               "Update user with invalid data",
+			input:              bytes.NewReader(invalidUserInputJson),
+			routeVariable:      fmt.Sprintf("%d", userID),
+			expectedStatusCode: http.StatusBadRequest,
+			token:              token,
+		},
+		{
+			name:               "Update user with incomplete data",
+			input:              bytes.NewReader(incompleteUserInputJson),
+			routeVariable:      fmt.Sprintf("%d", userID),
+			expectedStatusCode: http.StatusBadRequest,
+			token:              token,
+		},
+	}
+
+	userRepository := mock.NewUserRepository()
+	userController := controller.NewUserController(userRepository)
+
+	for _, subTest := range subTests {
+		t.Run(subTest.name, func(t *testing.T) {
+			request := httptest.NewRequest("PUT", "/users/"+subTest.routeVariable, subTest.input)
+			request = mux.SetURLVars(request, map[string]string{
+				"userID": subTest.routeVariable,
+			})
+			request.Header.Add("Content-Type", "application/json")
+			request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", subTest.token))
+
+			response := httptest.NewRecorder()
+
+			userController.Update(response, request)
+
+			assert.Equal(t, subTest.expectedStatusCode, response.Code, "Status code does not match with expected")
+
+			if subTest.expectedStatusCode != http.StatusNoContent {
+				assert.NotEmpty(t, response.Body.String(), "Response body is empty")
+			}
+		})
+	}
+
+}
+
+func TestDeleteUser(t *testing.T) {
+
+	userID := uint64(1)
+	token, _ := authentication.CreateToken(userID)
+
+	subTests := []struct {
+		name               string
+		routeVariable      string
+		expectedStatusCode int
+		token              string
+	}{
+		{
+			name:               "Delete user",
+			routeVariable:      fmt.Sprintf("%d", userID),
+			expectedStatusCode: http.StatusNoContent,
+			token:              token,
+		},
+		{
+			name:               "Delete user with an invalid token",
+			routeVariable:      fmt.Sprintf("%d", userID),
+			expectedStatusCode: http.StatusUnauthorized,
+			token:              "teste=",
+		},
+		{
+			name:               "Delete user with an invalid user ID",
+			routeVariable:      "teste",
+			expectedStatusCode: http.StatusBadRequest,
+			token:              token,
+		},
+		{
+			name:               "Try to delete a user other than your own",
+			routeVariable:      "2",
+			expectedStatusCode: http.StatusForbidden,
+			token:              token,
+		},
+	}
+
+	userRepository := mock.NewUserRepository()
+	userController := controller.NewUserController(userRepository)
+
+	for _, subTest := range subTests {
+		t.Run(subTest.name, func(t *testing.T) {
+			request := httptest.NewRequest("PUT", "/users/"+subTest.routeVariable, nil)
+			request = mux.SetURLVars(request, map[string]string{
+				"userID": subTest.routeVariable,
+			})
+			request.Header.Add("Content-Type", "application/json")
+			request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", subTest.token))
+
+			response := httptest.NewRecorder()
+
+			userController.Delete(response, request)
+
+			assert.Equal(t, subTest.expectedStatusCode, response.Code, "Status code does not match with expected")
+
+			if subTest.expectedStatusCode != http.StatusNoContent {
 				assert.NotEmpty(t, response.Body.String(), "Response body is empty")
 			}
 		})
