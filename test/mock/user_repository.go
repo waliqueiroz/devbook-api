@@ -62,19 +62,17 @@ func (repository UserRepositoryMock) Unfollow(userID, followerID uint64) error {
 
 // SearchFollowers returns a list of followers for a given user
 func (repository UserRepositoryMock) SearchFollowers(userID uint64) ([]model.User, error) {
-	return []model.User{}, nil
-
+	return repository.getStoredUserList()
 }
 
 // SearchFollowing returns a list of users that a given user is following
 func (repository UserRepositoryMock) SearchFollowing(userID uint64) ([]model.User, error) {
-	return []model.User{}, nil
-
+	return repository.getStoredUserList()
 }
 
 // FindPassword returns the hashed password of a given user
 func (repository UserRepositoryMock) FindPassword(userID uint64) (string, error) {
-	return "", nil
+	return "$2a$10$finFsyhIR/7UK/8nKmlUu.kdN.Vw3AaHBHBMZlp1HiP3J2JpMgkI6", nil
 }
 
 // UpdatePassword updates the password for a given user
