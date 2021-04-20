@@ -120,13 +120,13 @@ func TestShowUser(t *testing.T) {
 		expectedResponse   model.User
 	}{
 		{
-			name:               "Get with a valid user ID",
+			name:               "Get user with a valid user ID",
 			routeVariable:      "1",
 			expectedStatusCode: http.StatusOK,
 			expectedResponse:   expectedUser,
 		},
 		{
-			name:               "Get with an invalid user ID",
+			name:               "Get user with an invalid user ID",
 			routeVariable:      "teste",
 			expectedStatusCode: http.StatusBadRequest,
 		},
@@ -152,7 +152,7 @@ func TestShowUser(t *testing.T) {
 			if subTest.expectedStatusCode == http.StatusOK {
 				var createdUser model.User
 				json.Unmarshal(response.Body.Bytes(), &createdUser)
-				assert.Equal(t, subTest.expectedResponse, createdUser, "Created user does not match with expected")
+				assert.Equal(t, subTest.expectedResponse, createdUser, "User does not match with expected")
 			} else {
 				assert.NotEmpty(t, response.Body.String(), "Response body is empty")
 			}

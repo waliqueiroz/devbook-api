@@ -9,16 +9,16 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/waliqueiroz/devbook-api/authentication"
+	"github.com/waliqueiroz/devbook-api/interfaces"
 	"github.com/waliqueiroz/devbook-api/model"
-	"github.com/waliqueiroz/devbook-api/repository"
 	"github.com/waliqueiroz/devbook-api/response"
 )
 
 type PostController struct {
-	postRepository *repository.PostRepository
+	postRepository interfaces.PostRepository
 }
 
-func NewPostController(postRepository *repository.PostRepository) *PostController {
+func NewPostController(postRepository interfaces.PostRepository) *PostController {
 	return &PostController{
 		postRepository,
 	}
