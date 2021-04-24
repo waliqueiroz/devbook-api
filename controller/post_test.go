@@ -1,8 +1,10 @@
 package controller_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -83,7 +85,6 @@ func TestShowPost(t *testing.T) {
 		routeVariable      string
 		expectedStatusCode int
 		expectedResponse   model.Post
-		token              string
 	}{
 		{
 			name:               "Get post with a valid user ID",
@@ -116,6 +117,85 @@ func TestShowPost(t *testing.T) {
 			assert.Equal(t, subTest.expectedStatusCode, response.Code, "Status code does not match with expected")
 
 			if subTest.expectedStatusCode == http.StatusOK {
+				var createdPost model.Post
+				json.Unmarshal(response.Body.Bytes(), &createdPost)
+				assert.Equal(t, subTest.expectedResponse, createdPost, "Post does not match with expected")
+			} else {
+				assert.NotEmpty(t, response.Body.String(), "Response body is empty")
+			}
+		})
+	}
+}
+
+func TestCreatePost(t *testing.T) {
+	postInputJson, _ := ioutil.ReadFile("../test/resource/json/post_input.json")
+	invalidPostInputJson, _ := ioutil.ReadFile("../test/resource/json/invalid_post_input.json")
+	incompletePostInputJson, _ := ioutil.ReadFile("../test/resource/json/incomplete_post_input.json")
+
+	expectedPostJson, _ := ioutil.ReadFile("../test/resource/json/created_post.json")
+
+	var expectedPost model.Post
+	json.Unmarshal(expectedPostJson, &expectedPost)
+
+	userID := uint64(1)
+	token, _ := authentication.CreateToken(userID)
+
+	subTests := []struct {
+		name               string
+		input              io.Reader
+		expectedStatusCode int
+		token              string
+		expectedResponse   model.Post
+	}{
+		{
+			name:               "Create post with valid data",
+			input:              bytes.NewReader(postInputJson),
+			expectedStatusCode: http.StatusCreated,
+			expectedResponse:   expectedPost,
+			token:              token,
+		},
+		{
+			name:               "Create post with invalid body payload",
+			input:              mock.NewReader(),
+			expectedStatusCode: http.StatusUnprocessableEntity,
+			token:              token,
+		},
+		{
+			name:               "Create post with invalid data",
+			input:              bytes.NewReader(invalidPostInputJson),
+			expectedStatusCode: http.StatusBadRequest,
+			token:              token,
+		},
+		{
+			name:               "Create post with incomplete data",
+			input:              bytes.NewReader(incompletePostInputJson),
+			expectedStatusCode: http.StatusBadRequest,
+			token:              token,
+		},
+		{
+			name:               "Create post with invalid token",
+			input:              bytes.NewReader(postInputJson),
+			expectedStatusCode: http.StatusUnauthorized,
+			token:              "teste=",
+		},
+	}
+
+	postRepository := mock.NewPostRepository()
+	postController := controller.NewPostController(postRepository)
+
+	for _, subTest := range subTests {
+		t.Run(subTest.name, func(t *testing.T) {
+			request := httptest.NewRequest("POST", "/posts", subTest.input)
+			request.Header.Add("Content-Type", "application/json")
+			request.Header.Add("Authorization", fmt.Sprintf("Bearer %s", subTest.token))
+
+			response := httptest.NewRecorder()
+
+			postController.Create(response, request)
+
+			assert.Equal(t, subTest.expectedStatusCode, response.Code, "Status code does not match with expected")
+
+			if subTest.expectedStatusCode == http.StatusCreated {
 				var createdPost model.Post
 				json.Unmarshal(response.Body.Bytes(), &createdPost)
 				assert.Equal(t, subTest.expectedResponse, createdPost, "Post does not match with expected")

@@ -4,6 +4,6 @@
     "content": "Essa é a publicação do Usuário 1! Oba!",
     "author_id": 1,
     "author_nick": "user1",
-    "likes": 1,
+    "likes": 0,
     "created_at": "2021-04-06T13:34:50-03:00"
 }

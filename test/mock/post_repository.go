@@ -16,7 +16,7 @@ func NewPostRepository() *PostRepositoryMock {
 
 // Create inserts a post into database
 func (repository PostRepositoryMock) Create(post model.Post) (model.Post, error) {
-	return model.Post{}, nil
+	return repository.getStoredPost()
 }
 
 // FindByID returns a post that match with a given ID
