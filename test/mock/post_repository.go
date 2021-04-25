@@ -41,7 +41,7 @@ func (repository PostRepositoryMock) Delete(postID uint64) error {
 
 // FindByUser returns all posts from a given user
 func (repository PostRepositoryMock) FindByUser(userID uint64) ([]model.Post, error) {
-	return []model.Post{}, nil
+	return repository.getStoredPostList()
 }
 
 // LikePost increases the number of likes in a post
