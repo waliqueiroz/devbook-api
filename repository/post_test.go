@@ -13,7 +13,7 @@ import (
 	"github.com/waliqueiroz/devbook-api/test/mock"
 )
 
-func TestCreate(t *testing.T) {
+func TestCreatePost(t *testing.T) {
 	postJson, _ := ioutil.ReadFile("../test/resource/json/created_post.json")
 
 	var post model.Post
@@ -107,7 +107,7 @@ func TestCreate(t *testing.T) {
 	}
 }
 
-func TestFindByID(t *testing.T) {
+func TestFindPostByID(t *testing.T) {
 	postJson, _ := ioutil.ReadFile("../test/resource/json/created_post.json")
 
 	var post model.Post
@@ -171,7 +171,7 @@ func TestFindByID(t *testing.T) {
 	}
 }
 
-func TestIndex(t *testing.T) {
+func TestIndexPost(t *testing.T) {
 	postJson, _ := ioutil.ReadFile("../test/resource/json/created_post.json")
 
 	var post model.Post
@@ -235,7 +235,7 @@ func TestIndex(t *testing.T) {
 	}
 }
 
-func TestUpdate(t *testing.T) {
+func TestUpdatePost(t *testing.T) {
 	postJson, _ := ioutil.ReadFile("../test/resource/json/created_post.json")
 
 	var post model.Post
@@ -294,7 +294,7 @@ func TestUpdate(t *testing.T) {
 	}
 }
 
-func TestDelete(t *testing.T) {
+func TestDeletePost(t *testing.T) {
 	postJson, _ := ioutil.ReadFile("../test/resource/json/created_post.json")
 
 	var post model.Post
@@ -353,7 +353,7 @@ func TestDelete(t *testing.T) {
 	}
 }
 
-func TestFindByUser(t *testing.T) {
+func TestFindPostByUser(t *testing.T) {
 	postJson, _ := ioutil.ReadFile("../test/resource/json/created_post.json")
 
 	var post model.Post

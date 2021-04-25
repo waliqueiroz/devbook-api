@@ -3,13 +3,12 @@ module github.com/waliqueiroz/devbook-api
 go 1.15
 
 require (
-	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
+	github.com/DATA-DOG/go-sqlmock v1.5.0
 	github.com/badoux/checkmail v1.2.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.3.0
-	github.com/mattn/go-sqlite3 v1.14.6
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 )
