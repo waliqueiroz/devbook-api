@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	_ "github.com/go-sql-driver/mysql"
-	// _ "github.com/mattn/go-sqlite3"
 	"github.com/waliqueiroz/devbook-api/config"
 )
 
@@ -31,20 +30,3 @@ func Connect() (*sql.DB, error) {
 
 	return db, nil
 }
-
-// ConnectSQLite opens a connection with SQLite database
-// func ConnectSQLite() (*sql.DB, error) {
-// 	db, err := sql.Open("sqlite3", "file::memory:?cache=shared")
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	if err = db.Ping(); err != nil {
-// 		db.Close()
-// 		return nil, err
-// 	}
-
-// 	db.SetMaxOpenConns(1)
-
-// 	return db, nil
-// }
