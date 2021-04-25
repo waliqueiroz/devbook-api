@@ -13,7 +13,7 @@ func Post(postController *controller.PostController) []router.Route {
 			URI:          "/posts",
 			Method:       http.MethodPost,
 			Function:     postController.Create,
-			RequiresAuth: false,
+			RequiresAuth: true,
 		},
 		{
 			URI:          "/posts",

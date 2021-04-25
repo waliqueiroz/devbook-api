@@ -21,8 +21,8 @@ func JSON(w http.ResponseWriter, statusCode int, data interface{}) {
 // JSON write an error in json format to a request
 func Error(w http.ResponseWriter, statusCode int, err error) {
 	JSON(w, statusCode, struct {
-		Erro string `json:"error"`
+		Error string `json:"error"`
 	}{
-		Erro: err.Error(),
+		Error: err.Error(),
 	})
 }

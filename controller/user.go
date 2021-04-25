@@ -10,18 +10,18 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/waliqueiroz/devbook-api/authentication"
+	"github.com/waliqueiroz/devbook-api/interfaces"
 	"github.com/waliqueiroz/devbook-api/model"
-	"github.com/waliqueiroz/devbook-api/repository"
 	"github.com/waliqueiroz/devbook-api/response"
 	"github.com/waliqueiroz/devbook-api/security"
 )
 
 type UserController struct {
-	userRepository *repository.UserRepository
+	userRepository interfaces.UserRepository
 }
 
 // NewUserController creates a new UserController
-func NewUserController(userRepository *repository.UserRepository) *UserController {
+func NewUserController(userRepository interfaces.UserRepository) *UserController {
 	return &UserController{
 		userRepository,
 	}
